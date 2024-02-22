@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 const Edit = ({ params }: { params: { id: string } }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState([]);
   const router = useRouter();
   const { id } = params;
 
@@ -16,15 +17,25 @@ const Edit = ({ params }: { params: { id: string } }) => {
       const res = await axios.get(`/api/posts/${id}`);
       setTitle(res.data.title);
       setContent(res.data.content);
-      setCategory(res.data.category || "");
+      setCategoryId(res.data.categoryId);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get("/api/categories");
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
     }
   };
 
   useEffect(() => {
     if (id) {
       fetchPost(parseInt(id));
+      fetchCategories();
     }
   }, [id]);
 
@@ -35,7 +46,7 @@ const Edit = ({ params }: { params: { id: string } }) => {
       await axios.put(`/api/posts/${id}`, {
         title,
         content,
-        category,
+        categoryId,
       });
       router.push("/");
     } catch (error) {
@@ -77,11 +88,14 @@ const Edit = ({ params }: { params: { id: string } }) => {
         </div>
         <div>
           <label>Category</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             <option value="">Select a category</option>
             {/* Populate categories as needed */}
-            <option value="Tech">Tech</option>
-            <option value="Lifestyle">Lifestyle</option>
+            {categories.map((category: any) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
           </select>
         </div>
         <div>

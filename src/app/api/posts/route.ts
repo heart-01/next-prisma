@@ -6,13 +6,17 @@ const prisma = new PrismaClient();
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
   const search = searchParams.get("search") || "";
-  const category = searchParams.get("category");
+  const categoryId = searchParams.get("categoryId");
   const sort = searchParams.get("sort") === "asc" ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
 
   const posts = await prisma.post.findMany({
     where: {
-      ...(category && {
-        category,
+      ...(categoryId && {
+        category: {
+          is: {
+            id: Number(categoryId),
+          },
+        },
       }),
       title: {
         contains: search,

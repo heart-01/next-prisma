@@ -7,11 +7,13 @@ import Link from "next/link";
 const List = () => {
   const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState([]);
   const [sort, setSort] = useState("desc");
 
   useEffect(() => {
     fetchPosts();
+    fetchCategories();
   }, []);
 
   const handleApplyFilters = () => {
@@ -20,11 +22,20 @@ const List = () => {
 
   const fetchPosts = async () => {
     try {
-      const query = new URLSearchParams({ category, search, sort }).toString();
+      const query = new URLSearchParams({ categoryId, search, sort }).toString();
       const res = await axios.get(`/api/posts?${query}`);
       setPosts(res.data);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get("/api/categories");
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
     }
   };
 
@@ -50,10 +61,13 @@ const List = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">Select Category</option>
-            <option value="Tech">Tech</option>
-            <option value="Lifestyle">Lifestyle</option>
+            {categories.map((category: any) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
           </select>
           <select value={sort} onChange={(e) => setSort(e.target.value)} className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="desc">Latest</option>
@@ -93,7 +107,7 @@ const List = () => {
                   <div className="text-sm font-medium text-gray-900">{post.content}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{post.category || "-"}</div>
+                  <div className="text-sm font-medium text-gray-900">{post.category.name || "-"}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <Link className="text-indigo-600 hover:text-indigo-900 mr-4" href={`/edit/${post.id}`}>
