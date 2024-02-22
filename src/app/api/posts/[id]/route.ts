@@ -14,13 +14,14 @@ export const GET = async (request: Request, { params }: { params: { id: string }
 
 export const PUT = async (request: Request, { params }: { params: { id: string } }) => {
   try {
-    const { title, content } = await request.json();
+    const { title, content, category } = await request.json();
     const postId = Number(params.id);
     const updatePost = await prisma.post.update({
       where: { id: postId },
       data: {
         title,
         content,
+        category,
       },
     });
     return Response.json(updatePost);
