@@ -8,12 +8,18 @@ export const GET = async () => {
 };
 
 export const POST = async (request: Request) => {
-  const { title, content } = await request.json();
-  const newPost = await prisma.post.create({
-    data: {
-      title,
-      content,
-    },
-  });
-  return Response.json(newPost);
+  try {
+    const { title, content } = await request.json();
+    const newPost = await prisma.post.create({
+      data: {
+        title,
+        content,
+      },
+    });
+    return Response.json(newPost);
+  } catch (error) {
+    return new Response(error as BodyInit, {
+      status: 500,
+    });
+  }
 };
