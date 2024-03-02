@@ -1,0 +1,25 @@
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
+import { JWT } from "next-auth/jwt";
+
+interface User extends JWT {
+  role?: string;
+}
+
+export async function middleware(request: NextRequest): Promise<NextResponse | void> {
+  const user = (await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  })) as User;
+
+  // Get the pathname of the request
+  const { pathname } = request.nextUrl;
+
+  // If the pathname starts with /protected and the user is not an admin, redirect to the home page
+  if (pathname.startsWith("/protected") && (!user || user.role !== "admin")) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Continue with the request if the user is an admin or the route is not protected
+  return NextResponse.next();
+}
