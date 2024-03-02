@@ -7,37 +7,36 @@ import { AuthOptions } from "next-auth";
 
 const prisma = new PrismaClient();
 
-interface IUser {
-  id: number;
-  name: string;
-  email: string;
-}
-
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
-      id: "local-login",
-      name: "SignIn",
+      name: "local",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "example@email.com" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        if (!credentials) {
+        const { email, password } = credentials as {
+          email: string;
+          password: string;
+        };
+
+        if (!email || !password) {
           return null;
         }
 
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email,
+            email,
           },
         });
 
-        if (user && (await bcrypt.compare(credentials.password, user.password))) {
+        if (user && (await bcrypt.compare(password, user.password))) {
           return {
             id: user.id,
             name: user.name,
             email: user.email,
+            role: user.role,
           } as any;
         } else {
           throw new Error("Invalid email or password");
@@ -53,12 +52,14 @@ export const authOptions: AuthOptions = {
     jwt: async ({ token, user }: { token: any; user: any }) => {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
     session: async ({ session, token }: { session: any; token: any }) => {
       if (session.user) {
         session.user.id = token.id;
+        session.user.role = token.role;
       }
       return session;
     },
