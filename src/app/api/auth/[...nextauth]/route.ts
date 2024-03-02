@@ -1,5 +1,6 @@
 import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -31,16 +32,29 @@ export const authOptions: AuthOptions = {
           },
         });
 
-        if (user && (await bcrypt.compare(password, user.password))) {
+        if (user && password && user.password && (await bcrypt.compare(password, user.password))) {
           return {
             id: user.id,
             name: user.name,
             email: user.email,
+            image: user.image,
             role: user.role,
           } as any;
         } else {
           throw new Error("Invalid email or password");
         }
+      },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: `${profile.given_name} ${profile.family_name}`,
+          email: profile.email,
+          image: profile.picture,
+        };
       },
     }),
   ],

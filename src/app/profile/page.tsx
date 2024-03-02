@@ -21,6 +21,9 @@ export default function Profile() {
     session.user && (
       <div className="flex h-screen items-center justify-center">
         <div className="bg-white p-6 rounded-md shadow-md">
+          <div className="text-center mb-4">
+            <img src={session.user.image} className="rounded-full w-20 h-20 mx-auto" />
+          </div>
           <p>
             Welcome, <b>{session.user.name}!</b>
           </p>
